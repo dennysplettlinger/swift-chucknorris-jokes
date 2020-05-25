@@ -8,11 +8,4 @@
 
 import Foundation
 
-struct JokeResponse : Decodable {
-    let type: String
-    let value: [Joke]
-}
-
-struct Joke : Decodable {
-    let joke: String
-}
+//Model

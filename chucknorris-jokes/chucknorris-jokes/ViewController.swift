@@ -24,26 +24,22 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     
     func fetchData(){
-        let jsonUrlString = "http://api.icndb.com/jokes"
-        let url = URL(string: jsonUrlString)!
-                              
-        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-            guard let data = data else{
-                return
+        DispatchQueue.global(qos: .background).async {
+            let jsonUrlString = "http://api.icndb.com/jokes"
+            let url = URL(string: jsonUrlString)!
+                    
+            let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                guard let data = data else { return }
+                                    
+                let responseJsonObject = try! JSONDecoder().decode(JokeResponse.self, from: data)
+                self.jokes = responseJsonObject.value
+                                         
+                DispatchQueue.main.async {
+                    self.jokesTableView.reloadData()
+                }
             }
-                        
-            let responseJsonObject = try! JSONDecoder().decode(JokeResponse.self, from: data)
-            self.jokes = responseJsonObject.value
-                            
-            for joke in self.jokes{
-//                print(joke.joke)
-            }
-            
-            OperationQueue.main.addOperation {
-                self.jokesTableView.reloadData()
-            }
+            task.resume()
         }
-        task.resume()
     }
     
     
@@ -57,10 +53,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
         let joke = self.jokes[indexPath.row]
         
-        DispatchQueue.global().async {
-            DispatchQueue.main.async {
-                jokeCell.textLabel?.text = joke.joke
-            }
+        DispatchQueue.main.async {
+            jokeCell.textLabel?.text = joke.joke
         }
         
         return jokeCell

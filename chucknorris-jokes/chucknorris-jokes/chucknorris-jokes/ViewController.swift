@@ -19,12 +19,27 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         jokesTableView.dataSource = self
         jokesTableView.delegate = self
         
-        //Funktionaufruf
+        fetchData()
     }
     
     
     func fetchData(){
-        //API-Call hier
+        DispatchQueue.global(qos: .background).async {
+            let jsonUrlString = "http://api.icndb.com/jokes"
+            let url = URL(string: jsonUrlString)!
+                    
+            let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                guard let data = data else { return }
+                                    
+                let responseJsonObject = try! JSONDecoder().decode(JokeResponse.self, from: data)
+                self.jokes = responseJsonObject.value
+                
+                DispatchQueue.main.async {
+                    self.jokesTableView.reloadData()
+                }
+            }
+            task.resume()
+        }
     }
     
     
@@ -38,9 +53,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
         let joke = self.jokes[indexPath.row]
         
-        DispatchQueue.main.async {
-            jokeCell.textLabel?.text = joke.joke
-        }
+        jokeCell.textLabel?.text = joke.joke
         
         return jokeCell
            
